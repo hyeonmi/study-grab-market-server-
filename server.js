@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 8080;
+const model = require('./models');
 
 app.use(express.json()); // json 형식의 데이터를 사용
 app.use(cors());
@@ -54,7 +55,14 @@ app.post("/products", (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log('서버가 동작중입니다.')
+    console.log('서버가 실행중입니다.')
+    model.sequelize.sync().then(() => {
+        console.log('DB 연결 성공');
+    }).catch(err => {
+        console.log(err);
+        console.log('DB 연결 실패');
+        process.exit();
+    })
 });
 
 
