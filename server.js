@@ -1,11 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, "uploads");
+        },
+        filename: function (req, file, cb) {
+            cb(null, file.fieldname + '-' + Date.now());
+        },
+    }),
+});;
 const app = express();
 const port = 8080;
 const models = require('./models');
 
 app.use(express.json()); // json 형식의 데이터를 사용
 app.use(cors());
+app.use('/uploads', express.static('uploads'));
 
 app.get("/products", (req, res) => {
     models.Product.findAll({
@@ -18,11 +30,11 @@ app.get("/products", (req, res) => {
         res.send({ products : result });
     }).catch((error) => {
         console.error(error);
-        res.send("상품 전체 조회에 문제가 발생했습니다.");
+        res.status(400).send("상품 전체 조회에 문제가 발생했습니다.");
     });
 });
 
-app.get("/product/:id", (req, res) => {
+app.get("/products/:id", (req, res) => {
     const { id } = req.params;
     models.Product.findOne({
         where: { id: id }
@@ -31,30 +43,37 @@ app.get("/product/:id", (req, res) => {
         res.send(result);
     }).catch((error) => {
         console.error(error);
-        res.send("상품 조회에 문제가 발생했습니다.");
+        res.status(400).send("상품 조회에 문제가 발생했습니다.");
     });
 })
 
-app.post("/products", (req, res) => {
+app.post("/product", (req, res) => {
     const body = req.body;
-    const { name, description, price, seller } = body;
-    if(!name || !description || !price || !seller){
+    const { name, description, price, seller, imageUrl } = body;
+    if(!name || !description || !price || !seller || !imageUrl){
         res.send("모든 필드를 입력해주세요");
     }
     models.Product.create({
         name,
         description,
         price,
-        seller
+        seller,
+        imageUrl
     }).then((result) => {
         console.log("상품 생성 결과 : ", result);
         res.send({ result })
     }).catch((error) => {
         console.error(error);
-        res.send("상품 업로드에 문제가 발생했습니다.");
+        res.status(400).send("상품 업로드에 문제가 발생했습니다.");
     })
 });
 
+app.post("/image", upload.single("image"), (req, res) => {
+    const file = req.file;
+    res.send({
+        imageUrl: file.path
+    })
+})
 app.listen(port, () => {
     console.log('서버가 실행중입니다.')
     models.sequelize.sync().then(() => {
