@@ -74,6 +74,17 @@ app.post("/image", upload.single("image"), (req, res) => {
         imageUrl: file.path
     })
 })
+
+
+app.get("/banners", (req, res) => {
+  models.Banner.findAll({
+      limit: 2
+  }).then((result) => {
+        res.send({ banners: result });
+  }).catch((error) => {
+     res.status(500).send("배너 조회에 실패했습니다.");
+  });
+})
 app.listen(port, () => {
     console.log('서버가 실행중입니다.')
     models.sequelize.sync().then(() => {
