@@ -24,7 +24,7 @@ app.get("/products", (req, res) => {
         order: [
             ["createdAt", "DESC"]
         ],
-        attributes: ["id", "name", "price", "seller", "imageUrl", "createdAt"]
+        attributes: ["id", "name", "price", "seller", "imageUrl", "createdAt", "soldout"]
     }).then((result) => {
         console.log("PRODUCTS : ", result);
         res.send({ products : result });
@@ -84,6 +84,19 @@ app.get("/banners", (req, res) => {
   }).catch((error) => {
      res.status(500).send("배너 조회에 실패했습니다.");
   });
+})
+
+app.post("/purchase/:id", (req, res) => {
+    const { id } = req.params;
+    models.Product.update({
+        soldout: 1
+    }, {
+        where: { id }
+    }).then((result) => {
+        res.send({ result: true });
+    }).catch((error) => {
+        res.status(500).send("구매에 실패했습니다.");
+    })
 })
 app.listen(port, () => {
     console.log('서버가 실행중입니다.')
