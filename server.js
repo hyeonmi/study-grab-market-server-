@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const detectProduct = require('./helper/detectProduct');
+
 const upload = multer({
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
@@ -10,7 +12,7 @@ const upload = multer({
             cb(null, file.fieldname + '-' + Date.now());
         },
     }),
-});;
+});
 const app = express();
 const port = 8080;
 const models = require('./models');
@@ -53,19 +55,23 @@ app.post("/product", (req, res) => {
     if(!name || !description || !price || !seller || !imageUrl){
         res.send("모든 필드를 입력해주세요");
     }
-    models.Product.create({
-        name,
-        description,
-        price,
-        seller,
-        imageUrl
-    }).then((result) => {
-        console.log("상품 생성 결과 : ", result);
-        res.send({ result })
-    }).catch((error) => {
-        console.error(error);
-        res.status(400).send("상품 업로드에 문제가 발생했습니다.");
-    })
+
+    detectProduct(imageUrl, (type) => {
+        models.Product.create({
+            name,
+            description,
+            price,
+            seller,
+            imageUrl,
+            type
+        }).then((result) => {
+            console.log("상품 생성 결과 : ", result);
+            res.send({ result })
+        }).catch((error) => {
+            console.error(error);
+            res.status(400).send("상품 업로드에 문제가 발생했습니다.");
+        })
+    });
 });
 
 app.post("/image", upload.single("image"), (req, res) => {
@@ -81,7 +87,7 @@ app.get("/banners", (req, res) => {
       limit: 2
   }).then((result) => {
         res.send({ banners: result });
-  }).catch((error) => {
+  }).catch(() => {
      res.status(500).send("배너 조회에 실패했습니다.");
   });
 })
@@ -92,9 +98,9 @@ app.post("/purchase/:id", (req, res) => {
         soldout: 1
     }, {
         where: { id }
-    }).then((result) => {
+    }).then(() => {
         res.send({ result: true });
-    }).catch((error) => {
+    }).catch(() => {
         res.status(500).send("구매에 실패했습니다.");
     })
 })
