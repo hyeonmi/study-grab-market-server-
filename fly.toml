@@ -1,0 +1,20 @@
+# fly.toml app configuration file generated for study-grab-market-server22 on 2023-10-25T14:49:41+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "study-grab-market-server22"
+primary_region = "nrt"
+
+[build]
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
