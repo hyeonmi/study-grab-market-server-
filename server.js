@@ -104,6 +104,30 @@ app.post("/purchase/:id", (req, res) => {
         res.status(500).send("구매에 실패했습니다.");
     })
 })
+
+app.get("/products/:id/recommendation", (req, res) => {
+    const { id } = req.params;
+    models.Product.findOne({ where : { id }})
+        .then((product) => {
+            const {type} = product;
+            console.log(product)
+            models.Product.findAll({
+                where: {
+                    type,
+                    id:{
+                        [models.Sequelize.Op.ne] :id,
+                    },
+                },
+            }).then((products) => {
+                console.log("products: ", products);
+                res.send({ products });
+            });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send("추천 상품 조회에 실패했습니다.");
+        });
+});
 app.listen(port, () => {
     console.log('서버가 실행중입니다.')
     models.sequelize.sync().then(() => {
